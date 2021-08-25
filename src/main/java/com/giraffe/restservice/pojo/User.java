@@ -28,4 +28,8 @@ public class User {
 
     @Column(length = 2)
     private String gender;
+
+    @Column(length = 128)
+    private String courseListString = "[\"biology\", \"chinese\", \"geo\", \"math\", \"politics\", \"chemistry\", \"english\", \"history\", \"physics\"]";
+
 }

@@ -1,6 +1,9 @@
 package com.giraffe.restservice.service;
 
+import java.util.ArrayList;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
@@ -15,5 +18,18 @@ public class JsonService {
 		} catch (JsonProcessingException e){
 			return "{}";
         }
-    }
+	}
+
+	public ArrayList<String> toList(String jsonString) {
+		try {
+			JsonNode jsonNode = mapper.readTree(jsonString);
+			ArrayList<String> list = new ArrayList<String>();
+			for (int i = 0; i < jsonNode.size(); i++) {
+				list.add(jsonNode.get(i).asText());
+			}
+			return list;
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
 }

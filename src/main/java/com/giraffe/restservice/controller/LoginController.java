@@ -1,4 +1,4 @@
-package com.giraffe.restservice.controllers;
+package com.giraffe.restservice.controller;
 
 import java.util.HashMap;
 
@@ -39,6 +39,7 @@ public class LoginController {
 			user.setPhone(phone);
 			user.setPassword(password);
 			user.setGender(gender);
+			user.setName(name);
 			try {
 				userDAO.save(user);
 				ret.put("result", "succeed");
