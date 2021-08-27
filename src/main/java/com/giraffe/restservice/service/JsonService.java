@@ -20,6 +20,14 @@ public class JsonService {
         }
 	}
 
+	public JsonNode readTree(String jsonString){
+		try{
+		return mapper.readTree(jsonString);
+		} catch(Exception e){
+			return null;
+		}
+	}
+
 	public ArrayList<String> toList(String jsonString) {
 		try {
 			JsonNode jsonNode = mapper.readTree(jsonString);

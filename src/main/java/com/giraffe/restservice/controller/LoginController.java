@@ -26,9 +26,8 @@ public class LoginController {
 	}
 
 	@PostMapping("/api/auth/register")
-	public String register(@RequestParam(value = "phone") String phone,
-			@RequestParam(value = "password") String password, @RequestParam(value = "name") String name,
-			@RequestParam(value = "gender") String gender) {
+	public String register(@RequestParam String phone, @RequestParam String password, @RequestParam String name,
+			@RequestParam String gender) {
 
 		HashMap<String, Object> ret = new HashMap<String, Object>();
 		if (userDAO.existsUserByPhone(phone)) {
@@ -54,8 +53,7 @@ public class LoginController {
 	}
 
 	@PostMapping("/api/auth/login")
-	public String login(@RequestParam(value = "phone") String phone,
-			@RequestParam(value = "password") String password) {
+	public String login(@RequestParam String phone, @RequestParam String password) {
 
 		HashMap<String, Object> ret = new HashMap<String, Object>();
 		User user = userDAO.findUserByPhone(phone);

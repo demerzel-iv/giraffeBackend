@@ -40,7 +40,7 @@ public class CourseController {
     }
 
     @PostMapping("/api/course/postlist")
-    public String postList(HttpServletRequest request, @RequestParam(value = "courseList") String courseListString) {
+    public String postList(HttpServletRequest request, @RequestParam String courseListString) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
 
         int id = (int) request.getAttribute("id");
