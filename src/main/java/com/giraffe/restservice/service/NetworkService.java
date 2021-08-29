@@ -1,12 +1,11 @@
 package com.giraffe.restservice.service;
 
 import com.giraffe.restservice.exception.NetworkRequestFailedException;
-import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.BaseRequest;
 import com.mashape.unirest.request.HttpRequest;
-import com.mashape.unirest.request.HttpRequestWithBody;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
@@ -28,14 +27,12 @@ public class NetworkService {
     String loginUrl;
     String searchUrl;
     String entityInfoUrl;
+    String questionAnswerUrl;
 
-    public String sendRequest(HttpRequest request) throws NetworkRequestFailedException, UnirestException {
-        if (request.getHttpMethod() == HttpMethod.GET) {
-            request.queryString("id", id);
-        } else {
-            ((HttpRequestWithBody) request).field("id", id);
-        }
+    public String sendRequest(BaseRequest request) throws NetworkRequestFailedException, UnirestException {
         JsonNode jsonNode = request.asJson().getBody();
+
+        System.err.println(jsonNode.toString());
 
         if (jsonNode.getObject().getString("code").equals("0")) {
             return jsonNode.toString();
@@ -49,8 +46,8 @@ public class NetworkService {
     public String searchEntity(String course, String searchKey) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
-                HttpRequest request = Unirest.get(searchUrl).queryString("course", course).queryString("searchKey",
-                        searchKey);
+                HttpRequest request = Unirest.get(searchUrl).queryString("course", course)
+                        .queryString("searchKey", searchKey).queryString("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
@@ -61,8 +58,21 @@ public class NetworkService {
     public String getEntityInfo(String course, String name) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
-                HttpRequest request = Unirest.get(entityInfoUrl).queryString("course", course).queryString("name",
-                        name);
+                HttpRequest request = Unirest.get(entityInfoUrl).queryString("course", course).queryString("name", name)
+                        .queryString("id", id);
+                return sendRequest(request);
+            } catch (Exception e) {
+            }
+        }
+        throw new NetworkRequestFailedException();
+    }
+
+
+    public String questionAnswer(String course, String inputQuestion) throws NetworkRequestFailedException {
+        for (int i = 0; i < maxRequests; i++) {
+            try {
+                BaseRequest request = Unirest.post(questionAnswerUrl).field("course", course)
+                        .field("inputQuestion", inputQuestion).field("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
