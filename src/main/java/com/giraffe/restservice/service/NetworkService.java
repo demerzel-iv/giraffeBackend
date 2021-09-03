@@ -28,6 +28,7 @@ public class NetworkService {
     String searchUrl;
     String entityInfoUrl;
     String questionAnswerUrl;
+    String entityLinkUrl;
 
     public String sendRequest(BaseRequest request) throws NetworkRequestFailedException, UnirestException {
         JsonNode jsonNode = request.asJson().getBody();
@@ -80,4 +81,15 @@ public class NetworkService {
         throw new NetworkRequestFailedException();
     }
 
+    public String entityLink(String course, String context) throws NetworkRequestFailedException {
+        for (int i = 0; i < maxRequests; i++) {
+            try {
+                BaseRequest request = Unirest.post(entityLinkUrl).field("course", course).field("context", context)
+                        .field("id", id);
+                return sendRequest(request);
+            } catch (Exception e) {
+            }
+        }
+        throw new NetworkRequestFailedException();
+    }
 }
