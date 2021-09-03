@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.giraffe.restservice.exception.NetworkRequestFailedException;
 import com.giraffe.restservice.service.JsonService;
 import com.giraffe.restservice.service.NetworkService;
+import com.giraffe.restservice.service.ProblemService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class EntityController {
     NetworkService networkService;
     JsonService jsonService;
+    ProblemService problemService;
 
     @Autowired
-    EntityController(NetworkService networkService, JsonService jsonService) {
+    EntityController(NetworkService networkService, JsonService jsonService, ProblemService problemService) {
         this.networkService = networkService;
         this.jsonService = jsonService;
+        this.problemService = problemService;
     }
 
     @GetMapping("/api/entity/search")
@@ -85,6 +88,8 @@ public class EntityController {
                 content.add(relation);
             }
             ret.put("content", content);
+
+            ret.put("problemList", problemService.getProblemList(label));
 
         } catch (NetworkRequestFailedException e) {
             ret.put("result", "failed");

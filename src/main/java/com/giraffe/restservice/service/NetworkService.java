@@ -16,19 +16,20 @@ import lombok.Data;
 @Data
 @ConfigurationProperties(prefix = "network")
 public class NetworkService {
-    final String contentType = "Content-Type";
-    final String form = "application/x-www-form-urlencoded";
-    final int maxRequests = 3;
+    private final String contentType = "Content-Type";
+    private final String form = "application/x-www-form-urlencoded";
+    private final int maxRequests = 3;
 
-    String phone;
-    String password;
-    String id = "";
+    private String phone;
+    private String password;
+    private String id = "";
 
-    String loginUrl;
-    String searchUrl;
-    String entityInfoUrl;
-    String questionAnswerUrl;
-    String entityLinkUrl;
+    private String loginUrl;
+    private String searchUrl;
+    private String entityInfoUrl;
+    private String questionAnswerUrl;
+    private String entityLinkUrl;
+    private String problemUrl;
 
     public String sendRequest(BaseRequest request) throws NetworkRequestFailedException, UnirestException {
         JsonNode jsonNode = request.asJson().getBody();
@@ -68,7 +69,6 @@ public class NetworkService {
         throw new NetworkRequestFailedException();
     }
 
-
     public String questionAnswer(String course, String inputQuestion) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
@@ -86,6 +86,17 @@ public class NetworkService {
             try {
                 BaseRequest request = Unirest.post(entityLinkUrl).field("course", course).field("context", context)
                         .field("id", id);
+                return sendRequest(request);
+            } catch (Exception e) {
+            }
+        }
+        throw new NetworkRequestFailedException();
+    }
+
+    public String problemList(String name) throws NetworkRequestFailedException {
+        for (int i = 0; i < maxRequests; i++) {
+            try {
+                BaseRequest request = Unirest.get(problemUrl).queryString("uriName", name).queryString("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
