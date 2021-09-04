@@ -1,10 +1,13 @@
 package com.giraffe.restservice.controller;
 
 import java.util.HashMap;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.giraffe.restservice.dao.MyEntityDAO;
 import com.giraffe.restservice.dao.UserDAO;
+import com.giraffe.restservice.pojo.MyEntity;
 import com.giraffe.restservice.pojo.User;
 import com.giraffe.restservice.service.JsonService;
 
@@ -18,13 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
     private UserDAO userDAO;
     private JsonService jsonService;
-    
+    private MyEntityDAO entityDAO;
+
     @Autowired
-    CourseController(UserDAO userDAO, JsonService jsonService) {
+    CourseController(UserDAO userDAO, JsonService jsonService, MyEntityDAO entityDAO) {
         this.userDAO = userDAO;
         this.jsonService = jsonService;
+        this.entityDAO = entityDAO;
     }
-    
+
     @GetMapping("/api/course/getlist")
     public String getList(HttpServletRequest request) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
@@ -36,7 +41,7 @@ public class CourseController {
         ret.put("errorMsg", "");
         ret.put("courseList", jsonService.toList(user.getCourseListString()));
 
-		return jsonService.writeString(ret);
+        return jsonService.writeString(ret);
     }
 
     @PostMapping("/api/course/postlist")
@@ -51,6 +56,27 @@ public class CourseController {
         ret.put("result", "succeed");
         ret.put("errorMsg", "修改成功");
 
+        return jsonService.writeString(ret);
+    }
+
+    @GetMapping("/api/course/entity/count")
+    public String countEntity(HttpServletRequest request, @RequestParam String course) {
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+        ret.put("result", "succeed");
+        ret.put("errorMsg", "");
+        ret.put("number", entityDAO.getEntityByCourse(course).size());
+        return jsonService.writeString(ret);
+    }
+
+    @GetMapping("/api/course/entity/list")
+    public String listEntity(HttpServletRequest request, @RequestParam String course, @RequestParam int num,
+            @RequestParam int page) {
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+        List<MyEntity> list = entityDAO.getEntityByCourse(course);
+        ret.put("entityList", list.subList(num * (page - 1), num * page));
+
+        ret.put("result", "succeed");
+        ret.put("errorMsg", "");
         return jsonService.writeString(ret);
     }
 }
