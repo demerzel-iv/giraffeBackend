@@ -109,9 +109,9 @@ public class RecordController {
         }
         if (entityList.size() > 0) {
             if (num * page < entityList.size()) {
-                entityList.subList(num * (page - 1), num * page);
+                entityList = entityList.subList(num * (page - 1), num * page);
             } else {
-                entityList.subList(num * (page - 1), entityList.size() - 1);
+                entityList = entityList.subList(num * (page - 1), entityList.size() - 1);
             }
         }
 

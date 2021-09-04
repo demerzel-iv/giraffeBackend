@@ -76,9 +76,9 @@ public class CourseController {
 
         if (list.size() > 0) {
             if (num * page < list.size()) {
-                list.subList(num * (page - 1), num * page);
+                list = list.subList(num * (page - 1), num * page);
             } else {
-                list.subList(num * (page - 1), list.size() - 1);
+                list = list.subList(num * (page - 1), list.size() - 1);
             }
         }
 

@@ -126,7 +126,7 @@ public class EntityController {
             }
             ret.put("content", content);
 
-            ret.put("problemList", problemService.getProblemList(label));
+            //ret.put("problemList", problemService.getProblemList(label));
 
         } catch (NetworkRequestFailedException e) {
             ret.put("result", "failed");
