@@ -73,8 +73,16 @@ public class CourseController {
             @RequestParam int page) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
         List<MyEntity> list = entityDAO.getEntityByCourse(course);
-        ret.put("entityList", list.subList(num * (page - 1), num * page));
 
+        if (list.size() > 0) {
+            if (num * page < list.size()) {
+                list.subList(num * (page - 1), num * page);
+            } else {
+                list.subList(num * (page - 1), list.size() - 1);
+            }
+        }
+
+        ret.put("entityList", list);
         ret.put("result", "succeed");
         ret.put("errorMsg", "");
         return jsonService.writeString(ret);

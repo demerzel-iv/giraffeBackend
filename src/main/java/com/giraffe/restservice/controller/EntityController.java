@@ -5,8 +5,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.giraffe.restservice.dao.EntityRecordDAO;
+import com.giraffe.restservice.dao.MyEntityDAO;
+import com.giraffe.restservice.dao.SearchRecordDAO;
 import com.giraffe.restservice.exception.NetworkRequestFailedException;
+import com.giraffe.restservice.pojo.EntityRecord;
+import com.giraffe.restservice.pojo.MyEntity;
+import com.giraffe.restservice.pojo.SearchRecord;
 import com.giraffe.restservice.service.JsonService;
 import com.giraffe.restservice.service.NetworkService;
 import com.giraffe.restservice.service.ProblemService;
@@ -16,20 +25,40 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
+@Transactional
 public class EntityController {
     NetworkService networkService;
     JsonService jsonService;
     ProblemService problemService;
+    MyEntityDAO myEntityDAO;
+    EntityRecordDAO entityRecordDAO;
+    SearchRecordDAO searchRecordDAO;
 
     @Autowired
-    EntityController(NetworkService networkService, JsonService jsonService, ProblemService problemService) {
+    EntityController(NetworkService networkService, JsonService jsonService, ProblemService problemService,
+            MyEntityDAO myEntityDAO, EntityRecordDAO entityRecordDAO, SearchRecordDAO searchRecordDAO) {
         this.networkService = networkService;
         this.jsonService = jsonService;
         this.problemService = problemService;
+        this.myEntityDAO = myEntityDAO;
+        this.entityRecordDAO = entityRecordDAO;
+        this.searchRecordDAO = searchRecordDAO;
+    }
+
+    private int getEidByCourseLabel(String course, String label) {
+        if (!myEntityDAO.existsByCourseAndLabel(course, label)) {
+            MyEntity entity = new MyEntity();
+            entity.setCourse(course);
+            entity.setLabel(label);
+            myEntityDAO.save(entity);
+        }
+        MyEntity entity = myEntityDAO.findByCourseAndLabel(course, label);
+        return entity.getId();
     }
 
     @GetMapping("/api/entity/search")
-    public String searchEntity(@RequestParam String course, @RequestParam String searchKey) {
+    public String searchEntity(HttpServletRequest request, @RequestParam String course,
+            @RequestParam String searchKey) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
 
         try {
@@ -49,11 +78,19 @@ public class EntityController {
             ret.put("errorMsg", "服务器网络错误");
         }
 
+        int uid = (int) request.getAttribute("id");
+        searchRecordDAO.deleteByUidAndCourseAndSearchKey(uid, course, searchKey);
+        SearchRecord searchRecord = new SearchRecord();
+        searchRecord.setUid(uid);
+        searchRecord.setCourse(course);
+        searchRecord.setSearchKey(searchKey);
+        searchRecordDAO.save(searchRecord);
+
         return jsonService.writeString(ret);
     }
 
     @GetMapping("/api/entity/info")
-    public String getEntityInfo(@RequestParam String course, @RequestParam String label) {
+    public String getEntityInfo(HttpServletRequest request, @RequestParam String course, @RequestParam String label) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
         try {
             JsonNode tree = jsonService.readTree(networkService.getEntityInfo(course, label));
@@ -95,6 +132,14 @@ public class EntityController {
             ret.put("result", "failed");
             ret.put("errorMsg", "服务器网络错误");
         }
+
+        int uid = (int) request.getAttribute("id");
+        int eid = getEidByCourseLabel(course, label);
+        entityRecordDAO.deleteByUidAndEid(uid, eid);
+        EntityRecord entityRecord = new EntityRecord();
+        entityRecord.setUid(uid);
+        entityRecord.setEid(eid);
+        entityRecordDAO.save(entityRecord);
 
         return jsonService.writeString(ret);
     }
