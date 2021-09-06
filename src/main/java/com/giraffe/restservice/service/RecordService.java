@@ -3,6 +3,9 @@ package com.giraffe.restservice.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.giraffe.restservice.dao.EntityRecordDAO;
 import com.giraffe.restservice.dao.MyEntityDAO;
 import com.giraffe.restservice.dao.SearchRecordDAO;
@@ -72,6 +75,15 @@ public class RecordService {
         searchRecord.setCourse(course);
         searchRecord.setSearchKey(searchKey);
         searchRecordDAO.save(searchRecord);
+    }
+
+    public List<Integer> getStarredList(int uid) {
+        List<StarRecord> starList = starRecordDAO.getByUid(uid);
+        List<Integer> retList = new ArrayList<>();
+        for (StarRecord record : starList) {
+            retList.add(record.getEid());
+        }
+        return retList;
     }
 }
 
