@@ -1,5 +1,6 @@
 package com.giraffe.restservice.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import com.giraffe.restservice.dao.UserDAO;
 import com.giraffe.restservice.pojo.MyEntity;
 import com.giraffe.restservice.pojo.User;
 import com.giraffe.restservice.service.JsonService;
+import com.giraffe.restservice.service.RecordService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +24,14 @@ public class CourseController {
     private UserDAO userDAO;
     private JsonService jsonService;
     private MyEntityDAO entityDAO;
+    private RecordService recordService;
 
     @Autowired
-    CourseController(UserDAO userDAO, JsonService jsonService, MyEntityDAO entityDAO) {
+    CourseController(UserDAO userDAO, JsonService jsonService, MyEntityDAO entityDAO, RecordService recordService) {
         this.userDAO = userDAO;
         this.jsonService = jsonService;
         this.entityDAO = entityDAO;
+        this.recordService = recordService;
     }
 
     @GetMapping("/api/course/getlist")
@@ -71,6 +75,7 @@ public class CourseController {
     @GetMapping("/api/course/entity/list")
     public String listEntity(HttpServletRequest request, @RequestParam String course, @RequestParam int num,
             @RequestParam int page) {
+        int uid = (int) request.getAttribute("id");
         HashMap<String, Object> ret = new HashMap<String, Object>();
         List<MyEntity> list = entityDAO.getEntityByCourse(course);
 
@@ -82,7 +87,16 @@ public class CourseController {
             }
         }
 
-        ret.put("entityList", list);
+        ArrayList<Object> entityList = new ArrayList<>();
+        for (MyEntity item : list) {
+            HashMap<String, Object> entity = new HashMap<String, Object>();
+            String label = item.getLabel();
+            entity.put("label", label);
+            entity.put("star", recordService.isStarred(uid, course, label));
+            entityList.add(entity);
+        }
+
+        ret.put("entityList", entityList);
         ret.put("result", "succeed");
         ret.put("errorMsg", "");
         return jsonService.writeString(ret);

@@ -9,16 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.giraffe.restservice.dao.EntityRecordDAO;
-import com.giraffe.restservice.dao.MyEntityDAO;
-import com.giraffe.restservice.dao.SearchRecordDAO;
 import com.giraffe.restservice.exception.NetworkRequestFailedException;
-import com.giraffe.restservice.pojo.EntityRecord;
-import com.giraffe.restservice.pojo.MyEntity;
-import com.giraffe.restservice.pojo.SearchRecord;
 import com.giraffe.restservice.service.JsonService;
 import com.giraffe.restservice.service.NetworkService;
 import com.giraffe.restservice.service.ProblemService;
+import com.giraffe.restservice.service.RecordService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,44 +25,32 @@ public class EntityController {
     NetworkService networkService;
     JsonService jsonService;
     ProblemService problemService;
-    MyEntityDAO myEntityDAO;
-    EntityRecordDAO entityRecordDAO;
-    SearchRecordDAO searchRecordDAO;
+    RecordService recordService;
 
     @Autowired
     EntityController(NetworkService networkService, JsonService jsonService, ProblemService problemService,
-            MyEntityDAO myEntityDAO, EntityRecordDAO entityRecordDAO, SearchRecordDAO searchRecordDAO) {
+            RecordService recordService) {
         this.networkService = networkService;
         this.jsonService = jsonService;
         this.problemService = problemService;
-        this.myEntityDAO = myEntityDAO;
-        this.entityRecordDAO = entityRecordDAO;
-        this.searchRecordDAO = searchRecordDAO;
-    }
-
-    private int getEidByCourseLabel(String course, String label) {
-        if (!myEntityDAO.existsByCourseAndLabel(course, label)) {
-            MyEntity entity = new MyEntity();
-            entity.setCourse(course);
-            entity.setLabel(label);
-            myEntityDAO.save(entity);
-        }
-        MyEntity entity = myEntityDAO.findByCourseAndLabel(course, label);
-        return entity.getId();
+        this.recordService = recordService;
     }
 
     @GetMapping("/api/entity/search")
     public String searchEntity(HttpServletRequest request, @RequestParam String course,
             @RequestParam String searchKey) {
         HashMap<String, Object> ret = new HashMap<String, Object>();
+        int uid = (int) request.getAttribute("id");
 
         try {
             JsonNode tree = jsonService.readTree(networkService.searchEntity(course, searchKey));
             ArrayList<Object> entityList = new ArrayList<>();
             for (int i = 0; i < tree.get("data").size(); i++) {
                 HashMap<String, Object> entity = new HashMap<String, Object>();
-                entity.put("label", tree.get("data").get(i).get("label").asText());
+                String label = tree.get("data").get(i).get("label").asText();
+                entity.put("label", label);
                 entity.put("category", tree.get("data").get(i).get("category").asText());
+                entity.put("star", recordService.isStarred(uid, course, label));
                 entityList.add(entity);
             }
             ret.put("result", "succeed");
@@ -78,13 +61,7 @@ public class EntityController {
             ret.put("errorMsg", "服务器网络错误");
         }
 
-        int uid = (int) request.getAttribute("id");
-        searchRecordDAO.deleteByUidAndCourseAndSearchKey(uid, course, searchKey);
-        SearchRecord searchRecord = new SearchRecord();
-        searchRecord.setUid(uid);
-        searchRecord.setCourse(course);
-        searchRecord.setSearchKey(searchKey);
-        searchRecordDAO.save(searchRecord);
+        recordService.search(uid, course, searchKey);
 
         return jsonService.writeString(ret);
     }
@@ -126,7 +103,7 @@ public class EntityController {
             }
             ret.put("content", content);
 
-            //ret.put("problemList", problemService.getProblemList(label));
+            // ret.put("problemList", problemService.getProblemList(label));
 
         } catch (NetworkRequestFailedException e) {
             ret.put("result", "failed");
@@ -134,12 +111,7 @@ public class EntityController {
         }
 
         int uid = (int) request.getAttribute("id");
-        int eid = getEidByCourseLabel(course, label);
-        entityRecordDAO.deleteByUidAndEid(uid, eid);
-        EntityRecord entityRecord = new EntityRecord();
-        entityRecord.setUid(uid);
-        entityRecord.setEid(eid);
-        entityRecordDAO.save(entityRecord);
+        recordService.visit(uid, course, label);
 
         return jsonService.writeString(ret);
     }

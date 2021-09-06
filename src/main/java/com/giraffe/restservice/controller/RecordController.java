@@ -16,6 +16,7 @@ import com.giraffe.restservice.pojo.MyEntity;
 import com.giraffe.restservice.pojo.SearchRecord;
 import com.giraffe.restservice.pojo.StarRecord;
 import com.giraffe.restservice.service.JsonService;
+import com.giraffe.restservice.service.RecordService;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,43 +28,27 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 public class RecordController {
     private JsonService jsonService;
+    private RecordService recordService;
     private MyEntityDAO myEntityDAO;
     private StarRecordDAO starRecordDAO;
     private EntityRecordDAO entityRecordDAO;
     private SearchRecordDAO searchRecordDAO;
 
     @Autowired
-    RecordController(JsonService jsonService, MyEntityDAO myEntityDAO, StarRecordDAO starRecordDAO,
+    RecordController(JsonService jsonService, RecordService recordService,MyEntityDAO myEntityDAO, StarRecordDAO starRecordDAO,
             EntityRecordDAO entityRecordDAO, SearchRecordDAO searchRecordDAO) {
         this.jsonService = jsonService;
+        this.recordService = recordService;
         this.myEntityDAO = myEntityDAO;
         this.starRecordDAO = starRecordDAO;
         this.entityRecordDAO = entityRecordDAO;
         this.searchRecordDAO = searchRecordDAO;
     }
 
-    private int getEidByCourseLabel(String course, String label) {
-        if (!myEntityDAO.existsByCourseAndLabel(course, label)) {
-            MyEntity entity = new MyEntity();
-            entity.setCourse(course);
-            entity.setLabel(label);
-            myEntityDAO.save(entity);
-        }
-        MyEntity entity = myEntityDAO.findByCourseAndLabel(course, label);
-        return entity.getId();
-    }
-
     @PostMapping("/api/entity/star")
     public String starEntity(HttpServletRequest request, @RequestParam String course, @RequestParam String label) {
         int uid = (int) request.getAttribute("id");
-        int eid = getEidByCourseLabel(course, label);
-
-        if (!starRecordDAO.existsByUidAndEid(uid, eid)) {
-            StarRecord starRecord = new StarRecord();
-            starRecord.setUid(uid);
-            starRecord.setEid(eid);
-            starRecordDAO.save(starRecord);
-        }
+        recordService.star(uid, course, label);
 
         HashMap<String, Object> ret = new HashMap<>();
         ret.put("result", "succeed");
@@ -74,7 +59,7 @@ public class RecordController {
     @PostMapping("/api/entity/unstar")
     public String unstarEntity(HttpServletRequest request, @RequestParam String course, @RequestParam String label) {
         int uid = (int) request.getAttribute("id");
-        int eid = getEidByCourseLabel(course, label);
+        int eid = recordService.getEidByCourseLabel(course, label);
 
         starRecordDAO.deleteByUidAndEid(uid, eid);
 
@@ -148,7 +133,7 @@ public class RecordController {
     public String deleteVisitHistory(HttpServletRequest request, @RequestParam String course, @RequestParam String label) {
         HashMap<String, Object> ret = new HashMap<>();
         int uid = (int) request.getAttribute("id");
-        int eid = getEidByCourseLabel(course, label);
+        int eid = recordService.getEidByCourseLabel(course, label);
 
         entityRecordDAO.deleteByUidAndEid(uid, eid);
 
