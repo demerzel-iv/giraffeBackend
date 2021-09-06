@@ -68,12 +68,14 @@ public class EntityController {
 
     @GetMapping("/api/entity/info")
     public String getEntityInfo(HttpServletRequest request, @RequestParam String course, @RequestParam String label) {
+        int uid = (int) request.getAttribute("id");
         HashMap<String, Object> ret = new HashMap<String, Object>();
         try {
             JsonNode tree = jsonService.readTree(networkService.getEntityInfo(course, label));
             ret.put("result", "succeed");
             ret.put("errorMsg", "");
             ret.put("label", label);
+            ret.put("starred", recordService.isStarred(uid, course, label));
 
             ArrayList<Object> knowledgeCard = new ArrayList<>();
             JsonNode propertyList = tree.get("data").get("property");
@@ -103,17 +105,28 @@ public class EntityController {
             }
             ret.put("content", content);
 
-            // ret.put("problemList", problemService.getProblemList(label));
-
         } catch (NetworkRequestFailedException e) {
             ret.put("result", "failed");
             ret.put("errorMsg", "服务器网络错误");
         }
 
-        int uid = (int) request.getAttribute("id");
         recordService.visit(uid, course, label);
 
         return jsonService.writeString(ret);
     }
 
+    @GetMapping("/api/entity/problems")
+    public String getProblems(@RequestParam String label) {
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+        try {
+            ret.put("result", "succeed");
+            ret.put("errorMsg", "");
+            ret.put("problemList", problemService.getProblemList(label));
+        } catch (NetworkRequestFailedException e) {
+            ret.put("result", "failed");
+            ret.put("errorMsg", "服务器网络错误");
+        }
+
+        return jsonService.writeString(ret);
+    }
 }
