@@ -59,7 +59,7 @@ public class AlgorithmService {
         Queue<Integer> queue = new LinkedList<>();
         ArrayList<Object> retList = new ArrayList<>();
 
-        limit *= 2;
+        limit *= 5;
 
         for (MyEntity entity : source) {
             int eid = entity.getId();
@@ -68,17 +68,15 @@ public class AlgorithmService {
                 vis.add(eid);
             }
         }
+
+        ArrayList<MyEntity> entityList = new ArrayList<>();
+
         while (!queue.isEmpty()) {
             int eid = queue.poll();
-            for (int i = 0; i < 3; i++) {
-                try {
-                    retList.addAll(problemService.getProblemList(entityDAO.findById(eid).get().getLabel()));
-                    break;
-                } catch (NetworkRequestFailedException e) {
-                }
-            }
 
-            if (retList.size() >= limit) {
+            entityList.add(entityDAO.findById(eid).get());
+
+            if (entityList.size() >= limit) {
                 break;
             }
             for (int neid : edgeDAO.findNeighborhood(eid)) {
@@ -89,8 +87,24 @@ public class AlgorithmService {
             }
         }
 
-        limit /= 2;
+        limit /= 5;
+
+
+        for (MyEntity entity : entityList) {
+            for (int i = 0; i < 3; i++) {
+                try {
+                    retList.addAll(problemService.getProblemList(entity.getLabel()));
+                    break;
+                } catch (NetworkRequestFailedException e) {
+                }
+            }
+            if (retList.size() > limit * 2) {
+                break;
+            }
+        }
+
         Collections.shuffle(retList);
+
         int realLimit = limit;
         if (retList.size() < realLimit) {
             realLimit = retList.size();

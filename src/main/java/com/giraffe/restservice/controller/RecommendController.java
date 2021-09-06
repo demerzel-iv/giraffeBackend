@@ -4,10 +4,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.giraffe.restservice.dao.MyEntityDAO;
 import com.giraffe.restservice.pojo.MyEntity;
 import com.giraffe.restservice.service.AlgorithmService;
 import com.giraffe.restservice.service.JsonService;
+import com.giraffe.restservice.service.RecordService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,12 +22,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class RecommendController {
     private JsonService jsonService;
     private AlgorithmService algorithmService;
+    private RecordService recordService;
     private MyEntityDAO entityDAO;
 
     @Autowired
-    RecommendController(JsonService jsonService, AlgorithmService algorithmService, MyEntityDAO entityDAO) {
+    RecommendController(JsonService jsonService, AlgorithmService algorithmService, RecordService recordsService,
+            MyEntityDAO entityDAO) {
         this.jsonService = jsonService;
         this.algorithmService = algorithmService;
+        this.recordService = recordsService;
         this.entityDAO = entityDAO;
     }
 
@@ -59,7 +65,7 @@ public class RecommendController {
 
             ret.put("result", "succeed");
             ret.put("errorMsg", "");
-            ret.put("entityList", list);
+            ret.put("problemList", list);
         } else {
             ret.put("result", "failed");
             ret.put("errorMsg", "未找到相关知识");
@@ -68,4 +74,19 @@ public class RecommendController {
         return jsonService.writeString(ret);
     }
 
+
+    @GetMapping("/api/entity/problems/recommend")
+    public String recommendProblems(HttpServletRequest request) {
+        HashMap<String, Object> ret = new HashMap<>();
+        int uid = (int) request.getAttribute("id");
+
+        List<MyEntity> entityList = entityDAO.findAllById(recordService.getStarredList(uid));
+
+        List<Object> list = algorithmService.getRelativeProblems(entityList, 10);
+        ret.put("result", "succeed");
+        ret.put("errorMsg", "");
+        ret.put("problemList", list);
+
+        return jsonService.writeString(ret);
+    }
 }

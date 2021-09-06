@@ -90,13 +90,18 @@ public class RecordController {
 
         for (StarRecord star : list) {
             int eid = star.getEid();
-            entityList.add(myEntityDAO.findById(eid).get());
+            System.out.println(eid);
+            try {
+                entityList.add(myEntityDAO.findById(eid).get());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
         if (entityList.size() > 0) {
             if (num * page < entityList.size()) {
                 entityList = entityList.subList(num * (page - 1), num * page);
             } else {
-                entityList = entityList.subList(num * (page - 1), entityList.size() - 1);
+                entityList = entityList.subList(num * (page - 1), entityList.size());
             }
         }
 
