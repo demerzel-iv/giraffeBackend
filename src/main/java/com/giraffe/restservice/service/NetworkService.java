@@ -49,7 +49,7 @@ public class NetworkService {
         for (int i = 0; i < maxRequests; i++) {
             try {
                 HttpRequest request = Unirest.get(searchUrl).queryString("course", course)
-                        .queryString("searchKey", searchKey).queryString("id", id);
+                        .queryString("searchKey", searchKey.replace(" ", "%20")).queryString("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
@@ -60,7 +60,7 @@ public class NetworkService {
     public String getEntityInfo(String course, String name) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
-                HttpRequest request = Unirest.get(entityInfoUrl).queryString("course", course).queryString("name", name)
+                HttpRequest request = Unirest.get(entityInfoUrl).queryString("course", course).queryString("name", name.replace(" ", "%20"))
                         .queryString("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
@@ -73,7 +73,7 @@ public class NetworkService {
         for (int i = 0; i < maxRequests; i++) {
             try {
                 BaseRequest request = Unirest.post(questionAnswerUrl).field("course", course)
-                        .field("inputQuestion", inputQuestion).field("id", id);
+                        .field("inputQuestion", inputQuestion.replace(" ", "%20")).field("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
@@ -84,7 +84,7 @@ public class NetworkService {
     public String entityLink(String course, String context) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
-                BaseRequest request = Unirest.post(entityLinkUrl).field("course", course).field("context", context)
+                BaseRequest request = Unirest.post(entityLinkUrl).field("course", course).field("context", context.replace(" ", "%20"))
                         .field("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
@@ -96,7 +96,7 @@ public class NetworkService {
     public String problemList(String name) throws NetworkRequestFailedException {
         for (int i = 0; i < maxRequests; i++) {
             try {
-                BaseRequest request = Unirest.get(problemUrl).queryString("uriName", name).queryString("id", id);
+                BaseRequest request = Unirest.get(problemUrl).queryString("uriName", name.replace(" ", "%20")).queryString("id", id);
                 return sendRequest(request);
             } catch (Exception e) {
             }
