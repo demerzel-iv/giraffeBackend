@@ -76,11 +76,15 @@ public class EntityController {
             ret.put("errorMsg", "");
             ret.put("label", label);
             ret.put("starred", recordService.isStarred(uid, course, label));
+            ret.put("image", "");
 
             ArrayList<Object> knowledgeCard = new ArrayList<>();
             JsonNode propertyList = tree.get("data").get("property");
             for (int i = 0; i < propertyList.size(); i++) {
-                if (!propertyList.get(i).get("object").asText().startsWith("http")) {
+                if (propertyList.get(i).get("predicate").asText()
+                        .equals("http://edukg.org/knowledge/0.1/property/common#image")) {
+                    ret.put("image", propertyList.get(i).get("object").asText());
+                } else if (!propertyList.get(i).get("object").asText().startsWith("http")) {
                     HashMap<String, Object> property = new HashMap<String, Object>();
                     property.put("property", propertyList.get(i).get("predicateLabel").asText());
                     property.put("content", propertyList.get(i).get("object").asText());
