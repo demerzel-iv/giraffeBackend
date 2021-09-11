@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ProblemService {
+    final String opts = "ABCDEF";
+
     NetworkService networkService;
     JsonService jsonService;
 
@@ -21,7 +23,6 @@ public class ProblemService {
     }
 
     private HashMap<String, Object> processQBody(String qBody) {
-        final String opts = "ABCDEF";
 
         try {
             qBody = qBody.replace("．", ".");
@@ -57,7 +58,12 @@ public class ProblemService {
             if (problem == null) {
                 continue;
             }
-            problem.put("answer", tree.get(i).get("qAnswer").asText());
+
+            for (int j = 0; j < 6; j++) {
+                if (tree.get(i).get("qAnswer").asText().contains(opts.substring(j, j + 1))) {
+                    problem.put("answer", opts.charAt(j));
+                }
+            }
             list.add(problem);
         }
         return list;

@@ -1,12 +1,15 @@
 package com.giraffe.restservice.service;
 
+import com.giraffe.restservice.dao.CacheDAO;
 import com.giraffe.restservice.exception.NetworkRequestFailedException;
+import com.giraffe.restservice.pojo.Cache;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.BaseRequest;
 import com.mashape.unirest.request.HttpRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,13 @@ import lombok.Data;
 @Data
 @ConfigurationProperties(prefix = "network")
 public class NetworkService {
+    private CacheDAO cacheDAO;
+
+    @Autowired
+    NetworkService(CacheDAO cacheDAO) {
+        this.cacheDAO = cacheDAO;
+    }
+
     private final String contentType = "Content-Type";
     private final String form = "application/x-www-form-urlencoded";
     private final int maxRequests = 3;
@@ -94,10 +104,19 @@ public class NetworkService {
     }
 
     public String problemList(String name) throws NetworkRequestFailedException {
+        if (cacheDAO.existsBySearchKey(name)) {
+            return cacheDAO.findBySearchKey(name).getResult();
+        }
+
         for (int i = 0; i < maxRequests; i++) {
             try {
                 BaseRequest request = Unirest.get(problemUrl).queryString("uriName", name.replace(" ", "%20")).queryString("id", id);
-                return sendRequest(request);
+                String result = sendRequest(request);
+                Cache cache = new Cache();
+                cache.setSearchKey(name);
+                cache.setResult(result);
+                cacheDAO.save(cache);
+                return result;
             } catch (Exception e) {
             }
         }

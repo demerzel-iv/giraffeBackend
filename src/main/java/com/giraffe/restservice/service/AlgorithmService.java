@@ -59,8 +59,6 @@ public class AlgorithmService {
         Queue<Integer> queue = new LinkedList<>();
         ArrayList<Object> retList = new ArrayList<>();
 
-        limit *= 5;
-
         for (MyEntity entity : source) {
             int eid = entity.getId();
             if (!vis.contains(eid)) {
@@ -76,7 +74,7 @@ public class AlgorithmService {
 
             entityList.add(entityDAO.findById(eid).get());
 
-            if (entityList.size() >= limit) {
+            if (entityList.size() >= limit * 5) {
                 break;
             }
             for (int neid : edgeDAO.findNeighborhood(eid)) {
@@ -87,9 +85,6 @@ public class AlgorithmService {
             }
         }
 
-        limit /= 5;
-
-
         for (MyEntity entity : entityList) {
             for (int i = 0; i < 3; i++) {
                 try {
@@ -98,17 +93,37 @@ public class AlgorithmService {
                 } catch (NetworkRequestFailedException e) {
                 }
             }
-            if (retList.size() > limit * 2) {
+            if (retList.size() > limit * 10) {
                 break;
             }
         }
 
         Collections.shuffle(retList);
 
-        int realLimit = limit;
-        if (retList.size() < realLimit) {
-            realLimit = retList.size();
+        if (retList.size() < limit) {
+            List<String> courseList = new ArrayList<>();
+            courseList.add("biology");
+            courseList.add("chinese");
+            courseList.add("geo");
+            courseList.add("math");
+            courseList.add("politics");
+            courseList.add("chemistry");
+            courseList.add("english");
+            courseList.add("history");
+            courseList.add("physics");
+
+            List<MyEntity> tmpList = new ArrayList<>();
+            for (String course : courseList) {
+                List<MyEntity> eList = entityDAO.getEntityByCourse(course);
+                eList = eList.subList(0, 10);
+                tmpList.addAll(eList);
+
+            }
+            Collections.shuffle(tmpList);
+
+            retList.addAll(getRelativeProblems(tmpList, limit));
         }
-        return retList.subList(0, realLimit);
+
+        return retList.subList(0, limit);
     }
 }
